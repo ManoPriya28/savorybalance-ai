@@ -1260,7 +1260,7 @@
                     
                     <div class="stat-item">
                         <span class="stat-value">12kg</span>
-                        <span class="stat-label">CO₂ Saved Monthly</span>
+                            <span class="stat-label">CO₂ Saved Monthly</span>
                     </div>
                 </div>
             </div>
@@ -1494,7 +1494,7 @@
             }
         }
         
-        // Update grocery table
+        // Update grocery table - FIXED VERSION (no nullg)
         function updateGroceryTable(result) {
             const tbody = document.getElementById('groceryTableBody');
             tbody.innerHTML = '';
@@ -1513,18 +1513,25 @@
                 if (item.shelf_life_days <= 3) urgencyClass = 'high';
                 else if (item.shelf_life_days <= 7) urgencyClass = 'medium';
                 
+                // Calculate typical buy if null (2.5x AI amount)
+                const aiAmount = parseInt(item.buy_ai) || 0;
+                const typicalBuy = parseInt(item.buy_typical) || Math.round(aiAmount * 2.5);
+                
+                // Calculate saved grams if null
+                const savedGrams = parseInt(item.saved_grams) || Math.max(0, typicalBuy - aiAmount);
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>
-                        <strong>${item.food}</strong><br>
+                        <strong>${item.food || 'Food Item'}</strong><br>
                         <span class="food-category">${item.category || 'Food'}</span>
                     </td>
-                    <td><span class="badge badge-ai">${item.buy_ai}g</span></td>
-                    <td><span class="badge badge-waste">${item.buy_typical}g</span></td>
-                    <td><span class="badge badge-saved">-${item.saved_grams}g</span></td>
-                    <td><span class="urgency-badge ${urgencyClass}">${item.shelf_life_days} days</span></td>
-                    <td><strong>${item.use_by}</strong><br><small>${item.formatted_date || ''}</small></td>
-                    <td><small>${item.storage}</small></td>
+                    <td><span class="badge badge-ai">${aiAmount}g</span></td>
+                    <td><span class="badge badge-waste">${typicalBuy}g</span></td>
+                    <td><span class="badge badge-saved">-${savedGrams}g</span></td>
+                    <td><span class="urgency-badge ${urgencyClass}">${item.shelf_life_days || 7} days</span></td>
+                    <td><strong>${item.use_by || 'N/A'}</strong><br><small>${item.formatted_date || ''}</small></td>
+                    <td><small>${item.storage || 'Pantry'}</small></td>
                 `;
                 tbody.appendChild(row);
             });
@@ -1548,11 +1555,11 @@
                 mealElement.className = 'meal-item';
                 mealElement.innerHTML = `
                     <div class="meal-time">
-                        <i class="fas fa-clock"></i> ${meal.time}
+                        <i class="fas fa-clock"></i> ${meal.time || 'N/A'}
                     </div>
-                    <div class="meal-name">${meal.meal}</div>
+                    <div class="meal-name">${meal.meal || 'Meal'}</div>
                     <div class="meal-focus">
-                        <i class="fas fa-info-circle"></i> ${meal.focus}
+                        <i class="fas fa-info-circle"></i> ${meal.focus || 'Balanced Nutrition'}
                     </div>
                     ${meal.timing_note ? `<div style="font-size: 0.9rem; color: #8b5cf6; margin-top: 8px;">
                             <i class="fas fa-lightbulb"></i> ${meal.timing_note}
@@ -1587,15 +1594,15 @@
                 </div>
                 <div class="macros-grid">
                     <div class="macro-item">
-                        <span class="macro-value">${macros.protein}g</span>
+                        <span class="macro-value">${macros.protein || 0}g</span>
                         <span class="macro-label">Protein</span>
                     </div>
                     <div class="macro-item">
-                        <span class="macro-value">${macros.carbs}g</span>
+                        <span class="macro-value">${macros.carbs || 0}g</span>
                         <span class="macro-label">Carbohydrates</span>
                     </div>
                     <div class="macro-item">
-                        <span class="macro-value">${macros.fat}g</span>
+                        <span class="macro-value">${macros.fat || 0}g</span>
                         <span class="macro-label">Healthy Fats</span>
                     </div>
                 </div>
@@ -1619,40 +1626,40 @@
                     <div class="impact-icon">
                         <i class="fas fa-cloud"></i>
                     </div>
-                    <span class="impact-value">${impact.co2_saved}kg</span>
+                    <span class="impact-value">${impact.co2_saved || 0}kg</span>
                     <span class="impact-label">CO₂ Saved Weekly</span>
                 </div>
                 <div class="impact-item">
                     <div class="impact-icon">
                         <i class="fas fa-tint"></i>
                     </div>
-                    <span class="impact-value">${impact.water_saved}L</span>
+                    <span class="impact-value">${impact.water_saved || 0}L</span>
                     <span class="impact-label">Water Conserved</span>
                 </div>
                 <div class="impact-item">
                     <div class="impact-icon">
                         <i class="fas fa-mountain"></i>
                     </div>
-                    <span class="impact-value">${impact.land_saved}m²</span>
+                    <span class="impact-value">${impact.land_saved || 0}m²</span>
                     <span class="impact-label">Land Preserved</span>
                 </div>
                 <div class="impact-item">
                     <div class="impact-icon">
                         <i class="fas fa-tree"></i>
                     </div>
-                    <span class="impact-value">${impact.equivalent_trees}</span>
+                    <span class="impact-value">${impact.equivalent_trees || 0}</span>
                     <span class="impact-label">Equivalent Trees</span>
                 </div>
             `;
             
             envMessage.innerHTML = `
                 Your weekly waste reduction of <strong>${result.waste_reduction?.total_waste_kg || 0}kg</strong> 
-                is equivalent to planting <strong>${impact.equivalent_trees}</strong> trees. 
+                is equivalent to planting <strong>${impact.equivalent_trees || 0}</strong> trees. 
                 You're helping conserve vital resources and reduce environmental impact!
             `;
         }
         
-        // Update charts
+        // Update charts - FIXED VERSION
         function updateCharts(result) {
             // Destroy existing charts
             if (macroChart) macroChart.destroy();
@@ -1667,7 +1674,7 @@
                 data: {
                     labels: ['Protein', 'Carbohydrates', 'Fats'],
                     datasets: [{
-                        data: [macros.protein, macros.carbs, macros.fat],
+                        data: [macros.protein || 0, macros.carbs || 0, macros.fat || 0],
                         backgroundColor: ['#2A9D8F', '#F4A261', '#E9C46A'],
                         borderWidth: 2,
                         borderColor: '#fff'
@@ -1697,7 +1704,7 @@
                 }
             });
             
-            // Waste comparison chart
+            // Waste comparison chart - FIXED VERSION
             const wasteCtx = document.getElementById('wasteChart').getContext('2d');
             const wasteData = {
                 typical: 0,
@@ -1706,8 +1713,10 @@
             
             if (result.shopping_list && result.shopping_list.length > 0) {
                 result.shopping_list.forEach(item => {
-                    wasteData.typical += item.buy_typical;
-                    wasteData.optimized += item.buy_ai;
+                    const aiAmount = parseInt(item.buy_ai) || 0;
+                    const typicalBuy = parseInt(item.buy_typical) || Math.round(aiAmount * 2.5);
+                    wasteData.typical += typicalBuy;
+                    wasteData.optimized += aiAmount;
                 });
             }
             
